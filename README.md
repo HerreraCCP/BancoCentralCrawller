@@ -1,5 +1,5 @@
 ## README
-
+Este projeeto tem como objetivo criar um banco de dados das moedas do brasil e armazenar em um dabatase relacional a partir do crawller no banco central.
 ## ☕ 
 [![REPOSITÓRIO](https://img.shields.io/badge/repositório%20-%23323330.svg?&style=for-the-badge&logo=repositório&logoColor=black&color=8000FF)](https://git.opah.com.br/elio.lima/crawller-node/-/tree/master)
 
