@@ -1,4 +1,5 @@
 const fs = require('fs');
+const moment = require('moment');
 const fetch = require('node-fetch');
 const Promise = require('bluebird');
 const puppeteer = require('puppeteer');
@@ -6,12 +7,21 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const dotenv = require('dotenv').config();
 const request_client = require('request-promise-native');
+const { data } = require('cheerio/lib/api/attributes');
+const {
+  autoScroll,
+  logWarn,
+  logInfo,
+  logRed,
+} = require('../utils/general/index');
 
 class Scrapper {
-  constructor(page) {
+  constructor() {
+    this.page = null;
     this.browser = null;
     this.accessToken = {};
 
+    console.warn('THIS ==>', this.username, this.password);
     this.DICT = [
       'bcookie',
       'bscookie',
@@ -25,11 +35,19 @@ class Scrapper {
       'UserMatchHistory',
     ];
 
-    this._initialUrl = page;
+    this._initialUrl = 'https://www.bcb.gov.br/cedulasemoedas/moedas';
+    this._moedasEmitidas =
+      'https://www.bcb.gov.br/cedulasemoedas/moedasemitidas';
   }
 
-  async configScrapper() {
-    console.info('The configScrapper step has been started');
+  async _createNewPage() {
+    const pg = await this.browser.newPage();
+    await pg.setViewport({ width: 1040, height: 768 });
+    return pg;
+  }
+
+  async init() {
+    console.info('Iniciando...');
     try {
       this.browser = await puppeteer.launch({
         dumpio: true,
@@ -48,146 +66,44 @@ class Scrapper {
         ],
       });
       this.page = await this._createNewPage();
-      console.info('The configScrapper step  has been done...');
     } catch (error) {
       return {
         err: true,
         data: {
           error,
-          errorMessage: `The configScrapper step had has an error`,
+          errorMessage: `Init had has an error`,
         },
       };
     }
   }
 
-  async navigationToThePage() {
-    console.info('The navigationToThePage step has been started');
+  async open() {
+    console.info('Initial...');
     try {
-      await this.page.goto(this._initialUrl, { waitUntil: 'load' });
+      await this.page.goto(this._moedasEmitidas, { waitUntil: 'load' });
       await this.page.waitForNavigation();
-      console.info('The second step has been done...');
+      console.info('The first step has been done...');
     } catch (error) {
       return {
         err: true,
         data: {
           error,
-          errorMessage: `The navigationToThePage step had has an error`,
+          errorMessage: `Login had has an error`,
         },
       };
     }
-  }
-
-  async getCookies() {
-    console.info('The getCookies step has been started');
-    console.info('Extraindo cookies...', this.DICT);
-    try {
-      const client = await this.page.target().createCDPSession();
-      const sig = await client.send('Network.getAllCookies');
-      this.cookies = sig?.cookies;
-      console.info('The getCookies step has been done...');
-    } catch (error) {
-      return {
-        err: true,
-        data: {
-          error,
-          errorMessage: `Get Cookies had has an error`,
-        },
-      };
-    }
-  }
-
-  async processCookies() {
-    try {
-      console.info('The processCookies step has been started');
-      if (this.cookies) {
-        console.info('Processando cookies...');
-        const FN = (k) => this.DICT.includes(k.name);
-        this.cookies = this.cookies.filter(FN);
-      } else {
-        await this.page.close();
-        process.exit(1);
-      }
-    } catch (error) {
-      return {
-        err: true,
-        data: {
-          error,
-          errorMessage: `Process processCookies Cookies had has an error`,
-        },
-      };
-    }
-  }
-
-  async takeAllRequest() {
-    const results = []; // collects all results
-    let paused = false;
-    let pausedRequests = [];
-
-    const nextRequest = () => {
-      // continue the next request or "unpause"
-      if (pausedRequests.length === 0) paused = false;
-      // continue first request in "queue"
-      else pausedRequests.shift()(); // calls the request.continue function
-    };
-
-    await this.page.setRequestInterception(true);
-    this.page.on('request', (request) => {
-      console.warn('==> request <==', request);
-      if (paused) pausedRequests.push(() => request.continue());
-      else {
-        console.warn('==> else entrei aqui <==');
-        paused = true; // pause, as we are processing a request now
-        request.continue();
-      }
-    });
-
-    this.page.on('requestfinished', async (request) => {
-      const response = await request.response();
-      const responseHeaders = response.headers();
-      let responseBody;
-      if (request.redirectChain().length === 0)
-        responseBody = await response.buffer(); // body can only be access for non-redirect responses
-
-      const information = {
-        url: request.url(),
-        requestHeaders: request.headers(),
-        requestPostData: request.postData(),
-        responseHeaders: responseHeaders,
-        responseSize: responseHeaders['content-length'],
-        responseBody,
-      };
-
-      results.push(information);
-      nextRequest(); // continue with next request
-    });
-
-    this.page.on('requestfailed', (request) => {
-      // handle failed request
-      nextRequest();
-    });
-
-    await this.page.goto(this._initialUrl, { waitUntil: 'networkidle0' });
-    await browser.close();
   }
 
   async execute() {
     console.info('\n The software has been started!');
 
-    await this.configScrapper();
-    await this.navigationToThePage();
-    // await this.getCookies();
-    // await this.processCookies();
-    await this.takeAllRequest();
-
-    console.info('\n Isso é tudo, pessoal!');
-  }
-
-  async _createNewPage() {
-    const pg = await this.browser.newPage();
-    await pg.setViewport({ width: 1040, height: 768 });
-    return pg;
+    await this.init();
+    await this.open();
+    await this.console.info('\n Isso é tudo, pessoal!');
   }
 }
 
-const PAGE = process.env.PAGE;
-return new Scrapper(PAGE).execute();
+const ME = process.env.MOEDAS_EMITIDAS;
+const MO = process.env.MOEDAS;
+
+return new Scrapper().execute();

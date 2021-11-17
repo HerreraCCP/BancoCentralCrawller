@@ -1,9 +1,10 @@
 ## README
+
 Este projeeto tem como objetivo criar um banco de dados das moedas do brasil e armazenar em um dabatase relacional a partir do crawller no banco central.
-## ☕ 
-[![REPOSITÓRIO](https://img.shields.io/badge/repositório%20-%23323330.svg?&style=for-the-badge&logo=repositório&logoColor=black&color=8000FF)](https://git.opah.com.br/elio.lima/crawller-node/-/tree/master)
 
+## ☕
 
+[![REPOSITÓRIO](https://img.shields.io/badge/repositório%20-%23323330.svg?&style=for-the-badge&logo=repositório&logoColor=black&color=8000FF)]()
 
 ## 🥳 Contribuintes<br>
 
@@ -19,43 +20,43 @@ Este projeeto tem como objetivo criar um banco de dados das moedas do brasil e a
   </tr>
 </table>
 
-## ⛩  Instalação e Execução <br>
+## ⛩ Instalação e Execução <br>
 
 1. Criar um arquivo no projeto.
- 
-    ```sh
-    .env
-    ```
+
+   ```sh
+   .env
+   ```
 
 2. Colocar os seguintes valores dentro do arquivo criado:
 
-    ```sh
-    USER_LOG='usuario que utiliza para logar no linkedin'
-    ```
-    
-    ```sh
-    USER_PASS='senha do usuario'
-    ```
+   ```sh
+   USER_LOG='usuario que utiliza para logar no linkedin'
+   ```
+
+   ```sh
+   USER_PASS='senha do usuario'
+   ```
 
 3. instalar todas as dependencias do package.json
 
-    ```sh
-    npm i
-    ```
+   ```sh
+   npm i
+   ```
 
 4. iniciar o projeto.
 
-    ```sh
-    node index.js
-    ```
+   ```sh
+   node index.js
+   ```
 
-## ⛩  Documentação <br>
+## ⛩ Documentação <br>
 
 1. Executar o comando:
-    ```sh
-    yuidoc .
-    ```
-    
+   ```sh
+   yuidoc .
+   ```
+
 Para maiores informações sobre a documentação acesse [https://yui.github.io/yuidoc/](https://yui.github.io/yuidoc/)
 
 ## ⚖ Licença
