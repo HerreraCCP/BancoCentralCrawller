@@ -1,5 +1,24 @@
 const { colours } = require('../json/index');
 
+module.exports.htmlToJson = (div, obj) => {
+  if (!obj) obj = [];
+  var tag = {};
+
+  tag['tagName'] = div.tagName;
+  tag['children'] = [];
+
+  for (var i = 0; i < div.children.length; i++) {
+    tag['children'].push(htmlToJson(div.children[i]));
+  }
+
+  for (var i = 0; i < div.attributes.length; i++) {
+    var attr = div.attributes[i];
+    tag['@' + attr.name] = attr.value;
+  }
+
+  return tag;
+};
+
 module.exports.removeDuplicates = async function (data) {
   return Array.from(
     data.filter((value, index) => data.indexOf(value) === index)

@@ -1,6 +1,8 @@
 class Tables {
   init(connection) {
     this.connection = connection;
+
+    this.createImageTable();
     this.createBrazilianPlan();
     this.createFaceValue();
     this.createCirculationPeriod();
@@ -10,6 +12,21 @@ class Tables {
     this.createMintage();
     this.createYearOfProduction();
     this.createCode();
+    this.alterTables();
+  }
+
+  createImagesTable() {
+    const sql =
+      'CREATE TABLE IF NOT EXISTS Images' +
+      '(idImages int NOT NULL AUTO_INCREMENT,' +
+      'Image BLOB,' +
+      'Observarion varchar(200), PRIMARY KEY (idImages))';
+
+    this.connection.query(sql, (error) => {
+      //colocar log de erro
+      if (error) console.log(error);
+      else console.log('Tabela BrazilianPlan foi criada com sucesso');
+    });
   }
 
   // Tipo de Plano => Real, Cruzeiro, etc...
@@ -32,7 +49,12 @@ class Tables {
     const sql =
       'CREATE TABLE IF NOT EXISTS FaceValue' +
       '(idFaceValue int NOT NULL AUTO_INCREMENT,' +
-      'Value varchar(50),' +
+      'idBrazilianPlan int,' +
+      'idCirculationPeriod int,' +
+      'idMeasures int,' +
+      'idComposition int,' +
+      'idRADescription int,' +
+      'idYearOfProduction int,' +
       'Observarion varchar(200), PRIMARY KEY (idFaceValue))';
 
     this.connection.query(sql, (error) => {
@@ -126,7 +148,8 @@ class Tables {
     const sql =
       'CREATE TABLE IF NOT EXISTS YearOfProduction' +
       '(idYearOfProduction int NOT NULL AUTO_INCREMENT,' +
-      'Year varchar(100),' +
+      'idMintage int,' +
+      'idCode int,' +
       'Observarion varchar(200), PRIMARY KEY (idYearOfProduction))';
 
     this.connection.query(sql, (error) => {
@@ -149,6 +172,42 @@ class Tables {
       if (error) console.log(error);
       else console.log('Tabela Code foi criada com sucesso');
     });
+  }
+
+  alterTables() {
+    const result = [];
+    const alter0 = `ALTER TABLE 'FaceValue' ADD CONSTRAINT 'idImages' FOREIGN KEY ( 'idImages' ); REFERENCES 'Images' ( 'idImages')`;
+    const alter1 = `ALTER TABLE 'FaceValue' ADD CONSTRAINT 'idBrazilianPlan' FOREIGN KEY ( 'idBrazilianPlan' ); REFERENCES 'BrazilianPlan' ( 'idBrazilianPlan')`;
+    const alter2 = `ALTER TABLE 'FaceValue' ADD CONSTRAINT 'idCirculationPeriod' FOREIGN KEY ( 'idCirculationPeriod' ); REFERENCES 'CirculationPeriod' ( 'idCirculationPeriod')`;
+    const alter3 = `ALTER TABLE 'FaceValue' ADD CONSTRAINT 'idMeasures' FOREIGN KEY ( 'idMeasures' ); REFERENCES 'Measures' ( 'idMeasures')`;
+    const alter4 = `ALTER TABLE 'FaceValue' ADD CONSTRAINT 'idComposition' FOREIGN KEY ( 'idComposition' ); REFERENCES 'Composition' ( 'idComposition')`;
+    const alter5 = `ALTER TABLE 'FaceValue' ADD CONSTRAINT 'idRADescription' FOREIGN KEY ( 'idRADescription' ); REFERENCES 'RADescription' ( 'idRADescription')`;
+    const alter6 = `ALTER TABLE 'FaceValue' ADD CONSTRAINT 'idYearOfProduction' FOREIGN KEY ( 'idYearOfProduction' ); REFERENCES 'YearOfProduction' ( 'idYearOfProduction')`;
+    const alter7 = `ALTER TABLE 'YearOfProduction' ADD CONSTRAINT 'idMintage' FOREIGN KEY ( 'idMintage' ); REFERENCES 'Mintage' ( 'idMintage')`;
+    const alter8 = `ALTER TABLE 'YearOfProduction' ADD CONSTRAINT 'idCode' FOREIGN KEY ( 'idCode' ); REFERENCES 'Code' ( 'idCode')`;
+
+    result.push({
+      alter0,
+      alter1,
+      alter2,
+      alter3,
+      alter4,
+      alter5,
+      alter6,
+      alter7,
+      alter8,
+    });
+
+    this.connection.query(
+      result.forEach((element) => {
+        element;
+      }),
+      (error) => {
+        //colocar log de erro
+        if (error) console.log(error);
+        else console.log('Alter Table funfou');
+      }
+    );
   }
 }
 
