@@ -1,3 +1,3 @@
-module.exports.modelScrapProfiles = {
-  name: false,
-};
+class ModelScrapProfiles {}
+
+module.exports = new ModelScrapProfiles();

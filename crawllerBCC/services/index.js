@@ -1,6 +1,16 @@
+// crawller => colocar no docker     |
+// API => Nest.js para API / swagger |
+
+const fs = require('fs');
+const request = require('request');
 const puppeteer = require('puppeteer');
 const request_client = require('request-promise-native');
-const { htmlToJson, logWarn } = require('../utils/general/index');
+const {
+  htmlToJson,
+  logWarn,
+  logRed,
+  logInfo,
+} = require('../utils/general/index');
 
 class Scrapper {
   constructor() {
@@ -86,28 +96,33 @@ class Scrapper {
 
   async takeRequestsAndMountTheArray() {
     await this.page.setRequestInterception(true);
+
     this.page.on('request', (request) => {
+      const request_url = request.url();
+      const request_headers = request.headers();
+      const request_post_data = request.postData();
+
+      this.result.push({
+        request_url,
+        request_headers,
+        request_post_data,
+      });
+      logRed('this.result ==> ', this.result);
+
       request_client({
         uri: this._moedasEmitidas,
         resolveWithFullResponse: true,
       })
         .then((response) => {
-          const request_url = request.url();
-          const request_headers = request.headers();
-          const request_post_data = request.postData();
           const response_headers = response.headers;
-          const response_size = response_headers['content-length'];
           const response_body = response.body;
+          const response_size = response.headers['content-length'];
 
           this.result.push({
-            request_url,
-            request_headers,
-            request_post_data,
             response_headers,
             response_size,
             response_body,
           });
-          request.continue();
         })
         .catch((error) => {
           request.abort();
@@ -119,6 +134,8 @@ class Scrapper {
             },
           };
         });
+      logRed(this.result);
+      request.continue();
 
       if (!request.isNavigationRequest()) {
         request.continue();
@@ -133,10 +150,37 @@ class Scrapper {
     await this.page.goto(this._initialUrl);
   }
 
-  async teste() {
-    let teste = [];
-    teste = { ...this.result.request_url };
-    console.warn('teste ==> ', teste);
+  async downloadIMages() {
+    // page.on('response', async (response) => {
+    //   const matches = /.*\.(jpg|png|svg|gif)$/.exec(response.url());
+    //   if (matches && matches.length === 2) {
+    //     const extension = matches[1];
+    //     const buffer = await response.buffer();
+    //     fs.writeFileSync(`images/${matches[0]}.${extension}`, buffer, 'base64');
+    //   }
+    // });
+    // console.warn({ download });
+    // ================================= || =================================
+    // const brewery = async (page) => {
+    //   await page.setRequestInterception(true);
+    //   page.on('request', (r) => {
+    //     /**
+    //      * @see https://stackoverflow.com/a/47166637/3645650
+    //      */
+    //     if (
+    //       [
+    //         //'stylesheet',
+    //         'image',
+    //         'media',
+    //         'font',
+    //       ].indexOf(r.resourceType()) !== -1
+    //     ) {
+    //       r.abort();
+    //     } else {
+    //       r.continue();
+    //     }
+    //   });
+    // };
   }
 
   async execute() {
@@ -145,8 +189,7 @@ class Scrapper {
     await this.init();
     await this.open();
     await this.takeRequestsAndMountTheArray();
-    await this.teste();
-
+    await this.downloadImages();
     await this.logWarn('\n Isso é tudo, pessoal!');
   }
 }
@@ -155,7 +198,7 @@ const ME = process.env.MOEDAS_EMITIDAS;
 const MO = process.env.MOEDAS;
 
 return new Scrapper().execute();
-// M18fv
+
 // request_url: 'https://www.bcb.gov.br/api/servico/sitebcb/modaldados?tronco=cedulasemoedas&guidLista=d0b2d79f-d91a-44ef-b09d-959120d767dd&identificador=moeda_cruzeiro-CrS0_01',
 
 // request_headers: {
