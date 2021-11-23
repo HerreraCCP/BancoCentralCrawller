@@ -107,7 +107,6 @@ class Scrapper {
         request_headers,
         request_post_data,
       });
-      logRed('this.result ==> ', this.result);
 
       request_client({
         uri: this._moedasEmitidas,
@@ -123,6 +122,7 @@ class Scrapper {
             response_size,
             response_body,
           });
+          logRed('==> HERE ==>', this.result);
         })
         .catch((error) => {
           request.abort();
@@ -134,7 +134,6 @@ class Scrapper {
             },
           };
         });
-      logRed(this.result);
       request.continue();
 
       if (!request.isNavigationRequest()) {
@@ -147,40 +146,37 @@ class Scrapper {
       request.continue({ headers });
     });
     // navigate to the website
-    await this.page.goto(this._initialUrl);
+    await this.page.goto(this.page);
   }
 
-  async downloadIMages() {
-    // page.on('response', async (response) => {
-    //   const matches = /.*\.(jpg|png|svg|gif)$/.exec(response.url());
-    //   if (matches && matches.length === 2) {
-    //     const extension = matches[1];
-    //     const buffer = await response.buffer();
-    //     fs.writeFileSync(`images/${matches[0]}.${extension}`, buffer, 'base64');
-    //   }
-    // });
-    // console.warn({ download });
-    // ================================= || =================================
-    // const brewery = async (page) => {
-    //   await page.setRequestInterception(true);
-    //   page.on('request', (r) => {
-    //     /**
-    //      * @see https://stackoverflow.com/a/47166637/3645650
-    //      */
-    //     if (
-    //       [
-    //         //'stylesheet',
-    //         'image',
-    //         'media',
-    //         'font',
-    //       ].indexOf(r.resourceType()) !== -1
-    //     ) {
-    //       r.abort();
-    //     } else {
-    //       r.continue();
+  async downloadImages() {
+    logRed('==> ENTREI AQUI <==');
+    // await this.page.setRequestInterception(true);
+    logRed('==>  <==', this.result);
+
+    // this.page.on('request', (request) => {
+    //   logRed('==> ENTREI AQUI 3 <==');
+    //   request_client({
+    //     uri: this._moedasEmitidas,
+    //     resolveWithFullResponse: true,
+    //   }).then((response) => {
+    //     logRed('==> response <==', response);
+    //     const matches = /.*\.(jpg|png|svg|gif)$/.exec(response.url());
+    //     logRed('==> matches <==', matches);
+
+    //     if (matches && matches.length === 2) {
+    //       const extension = matches[1];
+    //       logRed('==> extension <==', extension);
+    //       const buffer = response.buffer();
+    //       logRed('==> buffer <==', buffer);
+    //       fs.writeFileSync(
+    //         `../assets/images/${matches[0]}.${extension}`,
+    //         buffer,
+    //         'base64'
+    //       );
     //     }
     //   });
-    // };
+    // });
   }
 
   async execute() {
@@ -189,8 +185,8 @@ class Scrapper {
     await this.init();
     await this.open();
     await this.takeRequestsAndMountTheArray();
-    await this.downloadImages();
-    await this.logWarn('\n Isso é tudo, pessoal!');
+    // await this.downloadImages();
+    logWarn('\n Isso é tudo, pessoal!');
   }
 }
 
