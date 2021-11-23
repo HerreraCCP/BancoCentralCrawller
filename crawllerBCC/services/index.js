@@ -97,7 +97,7 @@ class Scrapper {
   async takeRequestsAndMountTheArray() {
     await this.page.setRequestInterception(true);
 
-    this.page.on('request', (request) => {
+    this.page.on('request', async (request) => {
       const request_url = request.url();
       const request_headers = request.headers();
       const request_post_data = request.postData();
@@ -108,67 +108,28 @@ class Scrapper {
         request_post_data,
       });
 
-      request_client({
-        uri: this._moedasEmitidas,
-        resolveWithFullResponse: true,
-      })
-        .then((response) => {
-          const response_headers = response.headers;
-          const response_body = response.body;
-          const response_size = response.headers['content-length'];
-
-          this.result.push({
-            response_headers,
-            response_size,
-            response_body,
-          });
-          logRed('==> HERE ==>', this.result);
-        })
-        .catch((error) => {
-          request.abort();
-          return {
-            err: true,
-            data: {
-              error,
-              errorMessage: '',
-            },
-          };
-        });
       request.continue();
 
       if (!request.isNavigationRequest()) {
         request.continue();
         return;
       }
-
-      const headers = request.headers();
-      headers['X-Just-Must-Be-Request-In-Main-Request'] = 1;
-      request.continue({ headers });
     });
-    // navigate to the website
-    await this.page.goto(this.page);
+
+    await this.page.goto(this._moedasEmitidas);
   }
 
   async downloadImages() {
-    logRed('==> ENTREI AQUI <==');
     // await this.page.setRequestInterception(true);
-    logRed('==>  <==', this.result);
-
     // this.page.on('request', (request) => {
-    //   logRed('==> ENTREI AQUI 3 <==');
     //   request_client({
     //     uri: this._moedasEmitidas,
     //     resolveWithFullResponse: true,
     //   }).then((response) => {
-    //     logRed('==> response <==', response);
     //     const matches = /.*\.(jpg|png|svg|gif)$/.exec(response.url());
-    //     logRed('==> matches <==', matches);
-
     //     if (matches && matches.length === 2) {
     //       const extension = matches[1];
-    //       logRed('==> extension <==', extension);
     //       const buffer = response.buffer();
-    //       logRed('==> buffer <==', buffer);
     //       fs.writeFileSync(
     //         `../assets/images/${matches[0]}.${extension}`,
     //         buffer,
@@ -179,13 +140,18 @@ class Scrapper {
     // });
   }
 
+  async takeResponseAndMountTheArray() {
+    console.warn('takeResponseAndMountTheArray ===>', this.result);
+  }
+
   async execute() {
     logWarn('\n The software has been started!');
 
     await this.init();
     await this.open();
     await this.takeRequestsAndMountTheArray();
-    // await this.downloadImages();
+    await this.takeResponseAndMountTheArray();
+    await this.downloadImages();
     logWarn('\n Isso é tudo, pessoal!');
   }
 }
