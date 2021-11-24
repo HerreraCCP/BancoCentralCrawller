@@ -1,6 +1,7 @@
 const { colours } = require('../json/index');
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
 
 module.exports.htmlToJson = (div, obj) => {
   if (!obj) obj = [];
@@ -90,3 +91,21 @@ module.exports.uploadDeArquivos = (
     callbackImagemCriada(erro);
   }
 };
+
+module.exports.myDownload = (url, destination) =>
+  new Promise((resolve, reject) => {
+    const file = fs.createWriteStream(`../../assets/images/${destination}`);
+    https
+      .get(url, (response) => {
+        response.pipe(file);
+
+        file.on('finish', () => {
+          file.close(resolve(true));
+        });
+      })
+      .on('error', (error) => {
+        fs.unlink(destination);
+
+        reject(error.message);
+      });
+  });

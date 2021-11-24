@@ -1,4 +1,4 @@
-´ 
+µ 
 badssl.com/test/safety-tips/
 04porn.com/
 0552online.com/
@@ -891,7 +891,8 @@ fuxs1.com/
 games666.info/
 gametop.com/
 gardena.com/
-garten-center-spiegel.de/
+garten-center-spiegel.de/
+gazette-drouot.com/
 	gdzdo.ru/
 	gdzoo.ru/
 gearwest.com/
@@ -2535,7 +2536,9 @@ waseda.jp/
 water-test.su/
 watertest.su/
 wazo-bet.com/
-wazobet.com/
+wazobet.com/
+wbhed.gov.in/
+wbsed.gov.in/
 wcgsecurity.com.au/
 wcoanimedub.tv/
 wcoanimesub.tv/
