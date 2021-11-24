@@ -1,3 +1,2 @@
-2021/11/23-17:27:19.722 2c03 Reusing MANIFEST /Users/herrera/Desktop/Projects/Herrera/NODE/bcb/crawllerBCC/_logs/Default/Session Storage/MANIFEST-000001
-2021/11/23-17:27:19.725 2c03 Recovering log #3
-2021/11/23-17:27:19.727 2c03 Reusing old log /Users/herrera/Desktop/Projects/Herrera/NODE/bcb/crawllerBCC/_logs/Default/Session Storage/000003.log 
+2021/11/24-16:33:40.367 7450 Creating DB C:\Users\Herrera\Desktop\Projects\Herrera\NODE\bcb\crawllerBCC\_logs\Default\Session Storage since it was missing.
+2021/11/24-16:33:40.429 7450 Reusing MANIFEST C:\Users\Herrera\Desktop\Projects\Herrera\NODE\bcb\crawllerBCC\_logs\Default\Session Storage/MANIFEST-000001

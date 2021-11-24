@@ -1,14 +1,15 @@
-// crawller => colocar no docker     |
-// API => Nest.js para API / swagger |
-
 const fs = require('fs');
-const request = require('request');
-const puppeteer = require('puppeteer');
-const request_client = require('request-promise-native');
 const path = require('path');
 const https = require('https');
+const request = require('request');
+const fetch = require('node-fetch');
+const puppeteer = require('puppeteer');
+const request_client = require('request-promise-native');
+const util = require('util');
+const { logWarn, logRed } = require('../utils/general/index');
 
-const { logWarn, myDownload } = require('../utils/general/index');
+// crawller => colocar no docker     |
+// API => Nest.js para API / swagger |
 
 class Scrapper {
   constructor() {
@@ -121,44 +122,46 @@ class Scrapper {
     });
   }
 
-  //  <img title="moeda" alt="moeda"
-  //  src="/content/cedulasemoedas/cedulas_e_moedas/moedasemitidasbc/M75Fv.JPG"
-  //   class="img-fluid">
-  //  </img>
-
   async downloadAndSaveImages() {
     try {
-      const _dirname = '../assets/match';
+      const _dirname =
+        'C:/Users/Herrera/Desktop/Projects/Herrera/NODE/bcb/crawllerBCC/assets/images';
+
       const images = await this.page.$$eval('img', (x) =>
         [].map.call(x, (img) => img.src)
       );
 
       for (let i = 0; i < images.length; i++) {
-        const fileName = images[i].split('/').pop();
-        // fileName ==> M07fv.jpg
-
-        const filePath = path.resolve(_dirname, fileName);
-        // filePath ==> /Users/herrera/Desktop/Projects/Herrera/NODE/bcb/crawllerBCC/services/M07fv.jpg
-
-        // const writeStream = fs.createWriteStream(filePath);
-
-        const file = fs.createWriteStream(filePath);
-        https
-          .get(images[i], (response) => {
-            response.pipe(file);
-
-            file.on('finish', () => {
-              file.close(resolve(true));
-            });
-          })
-          .on('error', (error) => {
-            console.warn('error ==>', error);
-            fs.unlink();
-          });
+        // images[i] ==> https://www.bcb.gov.br/assets/img/logo_bacen_preto.png
+        const fn = images[i].split('/').pop(); // fn ==> logo_bacen_preto.png
+        const fp = path.resolve(_dirname, fn); // fp ==> C:\Users\Herrera\Desktop\Projects\Herrera\NODE\bcb\crawllerBCC\assets\images\logo_bacen_preto.png
+        await this.saveImageToDisk(images[i], fn, _dirname);
       }
     } catch (err) {
       console.log(err);
     }
+  }
+
+  async saveImageToDisk(url, filename, directory) {
+    fetch(url)
+      .then((res) => {
+        const dest = fs.createWriteStream(`${directory}/${filename}`);
+        res.body.pipe(dest);
+      })
+      .catch((err) => {
+        if (err.code === 'ETIMEDOUT') {
+          console.log(
+            'Deu ruim: ',
+            util.inspect(err, { showHidden: true, depth: 2 })
+          );
+        }
+        console.log(err);
+      });
+  }
+
+  async createDatabase() {
+    const mergeArray = { ...this.result, ...this.auxiliary };
+    console.warn('==> ==>', mergeArray);
   }
 
   async execute() {
@@ -169,6 +172,7 @@ class Scrapper {
     await this.takeRequestsAndMountTheArray();
     await this.takeResponseAndMountTheArray();
     await this.downloadAndSaveImages();
+    // await this.createDatabase();
     logWarn('\n Isso é tudo, pessoal!');
   }
 }

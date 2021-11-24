@@ -1,3 +1,3 @@
-2021/11/23-20:50:31.145 2e07 Reusing MANIFEST /Users/herrera/Desktop/Projects/Herrera/NODE/bcb/crawllerBCC/_logs/Default/Local Storage/leveldb/MANIFEST-000001
-2021/11/23-20:50:31.147 2e07 Recovering log #3
-2021/11/23-20:50:31.148 2e07 Reusing old log /Users/herrera/Desktop/Projects/Herrera/NODE/bcb/crawllerBCC/_logs/Default/Local Storage/leveldb/000003.log 
+2021/11/24-17:11:35.666 7810 Reusing MANIFEST C:\Users\Herrera\Desktop\Projects\Herrera\NODE\bcb\crawllerBCC\_logs\Default\Local Storage\leveldb/MANIFEST-000001
+2021/11/24-17:11:35.678 7810 Recovering log #3
+2021/11/24-17:11:35.679 7810 Reusing old log C:\Users\Herrera\Desktop\Projects\Herrera\NODE\bcb\crawllerBCC\_logs\Default\Local Storage\leveldb/000003.log 
