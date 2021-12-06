@@ -32,9 +32,10 @@ class Scrapper {
       'UserMatchHistory',
     ];
 
-    this._initialUrl = 'https://www.bcb.gov.br/cedulasemoedas/moedas';
     this._moedasEmitidas =
       'https://www.bcb.gov.br/cedulasemoedas/moedasemitidas';
+
+    this._initialUrl = 'https://www.bcb.gov.br/cedulasemoedas/moedas';
   }
 
   async _createNewPage() {
@@ -44,8 +45,8 @@ class Scrapper {
   }
 
   async init() {
-    logWarn('iniciando...');
     try {
+      logWarn('Primeira etapa init...');
       this.browser = await puppeteer.launch({
         dumpio: true,
         headless: false,
@@ -65,80 +66,129 @@ class Scrapper {
         ignoreDefaultArgs: ['--disable-extensions'],
         ignoreHTTPSErrors: true,
       });
+      logWarn('Etapa init() finalizada com sucesso ...');
       this.page = await this._createNewPage();
-      logWarn('Configuracoes realizadas com sucesso...');
     } catch (error) {
       return {
         err: true,
         data: {
           error,
-          errorMessage: `Init had has an error`,
+          errorMessage: `Init had has an error ${error}`,
         },
       };
     }
   }
 
   async open() {
-    logWarn('Iniciando segunda etapa de url e load da pagina...');
     try {
+      logWarn('Iniciando segunda etapa open()...');
+
       await this.page.goto(this._moedasEmitidas, { waitUntil: 'load' });
       await this.page.waitForNavigation();
-      logWarn('The second step has been done...');
+
+      logWarn('A segunda etapa open() finalizada...');
     } catch (error) {
       return {
         err: true,
         data: {
           error,
-          errorMessage: '',
+          errorMessage: `A etapa Open() apresentou erro ${error}`,
         },
       };
     }
   }
 
   async takeRequestsAndMountTheArray() {
-    await this.page.setRequestInterception(true);
+    try {
+      console.warn('Iniciando a terceira etapa...');
 
-    this.page.on('request', async (request) => {
-      const request_url = request.url();
-      const request_headers = request.headers();
-      const request_post_data = request.postData();
+      await this.page.setRequestInterception(true);
+      this.page.on('request', async (request) => {
+        const request_url = request.url();
+        const request_headers = request.headers();
+        const request_post_data = request.postData();
 
-      this.result.push({
-        request_url,
-        request_headers,
-        request_post_data,
+        this.result.push({
+          request_url,
+          request_headers,
+          request_post_data,
+        });
+
+        request.continue();
       });
 
-      request.continue();
-    });
+      console.warn(
+        `terceira etapa fechado e navegando para ${this._moedasEmitidas}`
+      );
 
-    await this.page.goto(this._moedasEmitidas);
+      await this.page.goto(this._moedasEmitidas);
+    } catch (error) {
+      return {
+        err: true,
+        data: {
+          error,
+          errorMessage: `A terceira etapa apresentou erro ==> ${error}`,
+        },
+      };
+    }
   }
 
   async takeResponseAndMountTheArray() {
-    this.page.on('response', async (response) => {
-      const _response = response.url();
-      this.auxiliary.push({ _response });
-    });
+    try {
+      console.warn('Iniciando a quarta etapa...');
+
+      this.page.on('response', async (response) => {
+        const _response = response.url();
+        this.auxiliary.push({ _response });
+      });
+      console.warn('Finalizando a quarta etapa...');
+    } catch (error) {
+      return {
+        err: true,
+        data: {
+          error,
+          errorMessage: `A quarta etapa apresentou erro ==> ${error}`,
+        },
+      };
+    }
   }
 
   async downloadAndSaveImages() {
     try {
+      console.warn('Iniciando a quinta etapa...');
+
       const _dirname =
         'C:/Users/Herrera/Desktop/Projects/Herrera/NODE/bcb/crawllerBCC/assets/images';
 
-      const images = await this.page.$$eval('img', (x) =>
+      const mapImages = await this.page.$$eval('img', (x) =>
         [].map.call(x, (img) => img.src)
       );
+      mapImages.forEach((e) => {
+        // ==> fileName ==> popup.png
+        // ==> filePath ==> /Users/herrera/Desktop/Projects/Herrera/NODE/bcb/crawllerBCC/C:/Users/Herrera/Desktop/Projects/Herrera/NODE/bcb/crawllerBCC/assets/images/popup.png
+        const fileName = e.split('/').pop();
+        const filePath = path.resolve(_dirname, fileName);
+        this.ssaveImageToDisk2(e, fileName, _dirname);
+      });
 
-      for (let i = 0; i < images.length; i++) {
-        // images[i] ==> https://www.bcb.gov.br/assets/img/logo_bacen_preto.png
-        const fn = images[i].split('/').pop(); // fn ==> logo_bacen_preto.png
-        const fp = path.resolve(_dirname, fn); // fp ==> C:\Users\Herrera\Desktop\Projects\Herrera\NODE\bcb\crawllerBCC\assets\images\logo_bacen_preto.png
-        await this.saveImageToDisk(images[i], fn, _dirname);
+      var image = Promise.resolve(mapImages);
+
+      for (let i = 0; i < mapImages.length; i++) {
+        // mapImages[i] ==> https://www.bcb.gov.br/assets/img/logo_bacen_preto.png
+        const fn = mapImages[i].split('/').pop(); // fn ==> logo_bacen_preto.png
+        const fp = path.resolve(_dirname, fn); // fp ==> C:\Users\Herrera\Desktop\Projects\Herrera\NODE\bcb\crawllerBCC\assets\mapImages\logo_bacen_preto.png
+        await this.saveImageToDisk(mapImages[i], fn, _dirname);
       }
-    } catch (err) {
-      console.log(err);
+
+      console.warn('Finalizando a quinta etapa...');
+    } catch (error) {
+      return {
+        err: true,
+        data: {
+          error,
+          errorMessage: `A quinta etapa apresentou erro ==> ${error}`,
+        },
+      };
     }
   }
 
@@ -159,9 +209,25 @@ class Scrapper {
       });
   }
 
+  saveImageToDisk2(url, filename, directory) {
+    fetch(url)
+      .then((res) => {
+        const dest = fs.createWriteStream(`${directory}/${filename}`);
+        res.body.pipe(dest);
+      })
+      .catch((err) => {
+        if (err.code === 'ETIMEDOUT') {
+          console.log(
+            'Deu ruim: ',
+            util.inspect(err, { showHidden: true, depth: 2 })
+          );
+        }
+        console.log(err);
+      });
+  }
+
   async createDatabase() {
     const mergeArray = { ...this.result, ...this.auxiliary };
-    console.warn('==> ==>', mergeArray);
   }
 
   async execute() {
@@ -169,10 +235,11 @@ class Scrapper {
 
     await this.init();
     await this.open();
-    await this.takeRequestsAndMountTheArray();
-    await this.takeResponseAndMountTheArray();
+    // await this.takeRequestsAndMountTheArray();
+    // await this.takeResponseAndMountTheArray();
     await this.downloadAndSaveImages();
     // await this.createDatabase();
+
     logWarn('\n Isso é tudo, pessoal!');
   }
 }
