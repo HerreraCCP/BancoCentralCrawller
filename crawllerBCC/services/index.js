@@ -159,16 +159,16 @@ class Scrapper {
 
       const _dirname =
         'C:/Users/Herrera/Desktop/Projects/Herrera/NODE/bcb/crawllerBCC/assets/images';
-
       const mapImages = await this.page.$$eval('img', (x) =>
         [].map.call(x, (img) => img.src)
       );
+
       mapImages.forEach((e) => {
         // ==> fileName ==> popup.png
         // ==> filePath ==> /Users/herrera/Desktop/Projects/Herrera/NODE/bcb/crawllerBCC/C:/Users/Herrera/Desktop/Projects/Herrera/NODE/bcb/crawllerBCC/assets/images/popup.png
         const fileName = e.split('/').pop();
         const filePath = path.resolve(_dirname, fileName);
-        this.ssaveImageToDisk2(e, fileName, _dirname);
+        this.saveImageToDisk(e, fileName, _dirname);
       });
 
       var image = Promise.resolve(mapImages);
@@ -193,23 +193,6 @@ class Scrapper {
   }
 
   async saveImageToDisk(url, filename, directory) {
-    fetch(url)
-      .then((res) => {
-        const dest = fs.createWriteStream(`${directory}/${filename}`);
-        res.body.pipe(dest);
-      })
-      .catch((err) => {
-        if (err.code === 'ETIMEDOUT') {
-          console.log(
-            'Deu ruim: ',
-            util.inspect(err, { showHidden: true, depth: 2 })
-          );
-        }
-        console.log(err);
-      });
-  }
-
-  saveImageToDisk2(url, filename, directory) {
     fetch(url)
       .then((res) => {
         const dest = fs.createWriteStream(`${directory}/${filename}`);
