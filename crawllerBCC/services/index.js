@@ -1,12 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
-const request = require('request');
 const fetch = require('node-fetch');
 const puppeteer = require('puppeteer');
-const request_client = require('request-promise-native');
 const util = require('util');
-const { logWarn, logRed } = require('../utils/general/index');
+var logger = require('../utils/classes/logger');
 
 // crawller => colocar no docker     |
 // API => Nest.js para API / swagger |
@@ -46,7 +44,7 @@ class Scrapper {
 
   async init() {
     try {
-      logWarn('Primeira etapa init...');
+      logger.info('Primeira etapa init...');
       this.browser = await puppeteer.launch({
         dumpio: true,
         headless: false,
@@ -66,7 +64,7 @@ class Scrapper {
         ignoreDefaultArgs: ['--disable-extensions'],
         ignoreHTTPSErrors: true,
       });
-      logWarn('Etapa init() finalizada com sucesso ...');
+      logger.info('Etapa init() finalizada com sucesso ...');
       this.page = await this._createNewPage();
     } catch (error) {
       return {
@@ -81,12 +79,12 @@ class Scrapper {
 
   async open() {
     try {
-      logWarn('Iniciando segunda etapa open()...');
+      logger.info('Iniciando segunda etapa open()...');
 
       await this.page.goto(this._moedasEmitidas, { waitUntil: 'load' });
       await this.page.waitForNavigation();
 
-      logWarn('A segunda etapa open() finalizada...');
+      logger.info('A segunda etapa open() finalizada...');
     } catch (error) {
       return {
         err: true,
@@ -100,7 +98,7 @@ class Scrapper {
 
   async takeRequestsAndMountTheArray() {
     try {
-      console.warn('Iniciando a terceira etapa...');
+      logger.info('Iniciando a terceira etapa...');
 
       await this.page.setRequestInterception(true);
       this.page.on('request', async (request) => {
@@ -117,7 +115,7 @@ class Scrapper {
         request.continue();
       });
 
-      console.warn(
+      logger.info(
         `terceira etapa fechado e navegando para ${this._moedasEmitidas}`
       );
 
@@ -135,13 +133,13 @@ class Scrapper {
 
   async takeResponseAndMountTheArray() {
     try {
-      console.warn('Iniciando a quarta etapa...');
+      logger.info('Iniciando a quarta etapa...');
 
       this.page.on('response', async (response) => {
         const _response = response.url();
         this.auxiliary.push({ _response });
       });
-      console.warn('Finalizando a quarta etapa...');
+      logger.info('Finalizando a quarta etapa...');
     } catch (error) {
       return {
         err: true,
@@ -155,38 +153,44 @@ class Scrapper {
 
   async downloadAndSaveImages() {
     try {
-      console.warn('Iniciando a quinta etapa...');
+      const _imageFolder = path.join(
+        __dirname,
+        '../../../bcb/crawllerBCC/utils/assets/images'
+      );
+      const _logArchive = path.join(
+        __dirname,
+        '../../../bcb/crawllerBCC/utils/assets/logs/imgSalvas.txt'
+      );
 
-      const _dirname =
-        'C:/Users/Herrera/Desktop/Projects/Herrera/NODE/bcb/crawllerBCC/assets/images';
+      logger.info('Iniciando a quinta etapa...');
+      logger.info(`Aonde será gravado as imagens ${_imageFolder}`);
+
       const mapImages = await this.page.$$eval('img', (x) =>
         [].map.call(x, (img) => img.src)
       );
 
       mapImages.forEach((e) => {
-        // ==> fileName ==> popup.png
-        // ==> filePath ==> /Users/herrera/Desktop/Projects/Herrera/NODE/bcb/crawllerBCC/C:/Users/Herrera/Desktop/Projects/Herrera/NODE/bcb/crawllerBCC/assets/images/popup.png
-        const fileName = e.split('/').pop();
-        const filePath = path.resolve(_dirname, fileName);
-        this.saveImageToDisk(e, fileName, _dirname);
+        const fileName = e.split('/').pop(); // fileName ==> popup.png
+        const filePath = path.resolve(__dirname, fileName); // /Users/herrera/Desktop/Projects/Herrera/NODE/bcb/crawllerBCC/services/M09fv.JPG
+        this.saveImageToDisk2(e, fileName, _imageFolder);
       });
 
-      var image = Promise.resolve(mapImages);
+      fs.readFileSync(_logArchive);
+      fs.writeFileSync(
+        _logArchive,
+        mapImages.forEach((c) => c)
+      );
+      fs.closeSync();
 
-      for (let i = 0; i < mapImages.length; i++) {
-        // mapImages[i] ==> https://www.bcb.gov.br/assets/img/logo_bacen_preto.png
-        const fn = mapImages[i].split('/').pop(); // fn ==> logo_bacen_preto.png
-        const fp = path.resolve(_dirname, fn); // fp ==> C:\Users\Herrera\Desktop\Projects\Herrera\NODE\bcb\crawllerBCC\assets\mapImages\logo_bacen_preto.png
-        await this.saveImageToDisk(mapImages[i], fn, _dirname);
-      }
-
-      console.warn('Finalizando a quinta etapa...');
+      logger.info('Finalizando a quinta etapa...');
     } catch (error) {
       return {
         err: true,
         data: {
           error,
-          errorMessage: `A quinta etapa apresentou erro ==> ${error}`,
+          errorMessage: logger.error(
+            `A quinta etapa apresentou erro ==> ${error}`
+          ),
         },
       };
     }
@@ -209,12 +213,44 @@ class Scrapper {
       });
   }
 
+  saveImageToDisk2(url, filename, directory) {
+    fetch(url)
+      .then((res) => {
+        const dest = fs.createWriteStream(`${directory}/${filename}`);
+        res.body.pipe(dest);
+      })
+      .catch((err) => {
+        if (err.code === 'ETIMEDOUT') {
+          console.log(
+            'Deu ruim: ',
+            util.inspect(err, { showHidden: true, depth: 2 })
+          );
+        }
+        console.log(err);
+      });
+  }
+
+  async saveLog(fileTxt, contents) {
+    fs.writeFile(fileTxt, contents, (err) => {
+      if (!err) console.warn('Deu BOM no gravacao');
+      else console.warn('Deu RUIM no gravacao');
+    });
+  }
+
+  async lerArquivo(caminhoArquivo) {
+    return new Promise((resolve, reject) => {
+      readFile(caminhoArquivo, (err, data) => {
+        err ? reject(err) : resolve(data);
+      });
+    });
+  }
+
   async createDatabase() {
     const mergeArray = { ...this.result, ...this.auxiliary };
   }
 
   async execute() {
-    logWarn('\n The software has been started!');
+    logger.info('\n The software has been started!');
 
     await this.init();
     await this.open();
@@ -223,7 +259,7 @@ class Scrapper {
     await this.downloadAndSaveImages();
     // await this.createDatabase();
 
-    logWarn('\n Isso é tudo, pessoal!');
+    logger.info('\n Isso é tudo, pessoal!');
   }
 }
 
